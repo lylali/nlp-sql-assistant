@@ -5,15 +5,12 @@ from legacy_assistant.nl2sql import generate_candidates
 from legacy_assistant.feedback import record_feedback
 from legacy_assistant.feedback_learn import ingest_feedback_to_corpus
 
-st.set_page_config(page_title="Legacy Assistant (Demo)", layout="wide")
+st.set_page_config(page_title="SQL Assistant", layout="wide")
 
 @st.cache_resource
 def get_conn():
     cfg=AppConfig()
-    # IMPORTANT: make SQLite cross-thread safe for Streamlit
-    import sqlite3
-    conn = create_demo_connection(":memory:", check_same_thread=False)
-    return conn
+    return create_demo_connection(cfg.demo_rows_policies, cfg.demo_rows_claims)
 
 conn=get_conn()
 schema=schema_introspect(conn)

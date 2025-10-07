@@ -1,7 +1,10 @@
 
 import sqlite3, random, datetime as dt
 def create_demo_connection(policies:int=2000, claims:int=5000, seed:int=7):
-    r = random.Random(seed); conn = sqlite3.connect(":memory:", check_same_thread=False); cur = conn.cursor()
+    r = random.Random(seed)
+    # Always enable cross-thread use for Streamlit
+    conn = sqlite3.connect(":memory:", check_same_thread=True if kwargs.get("check_same_thread") is True else False)
+    cur = conn.cursor()
     cur.executescript("""    PRAGMA foreign_keys=ON;
     CREATE TABLE organizations(org_id INTEGER PRIMARY KEY, org_code TEXT UNIQUE, org_name TEXT, city TEXT, country_code TEXT);
     CREATE TABLE policies(policy_id INTEGER PRIMARY KEY, policy_number TEXT UNIQUE, org_id INTEGER REFERENCES organizations(org_id),
