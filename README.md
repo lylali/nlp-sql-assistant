@@ -24,6 +24,7 @@ The Legacy Database Assistant provides:
 
 
 ## 🏗️ System Architecture
+```
 Synthetic DB (SQLite)
 │
 Schema Introspection ──► Template Library ──► Retriever
@@ -33,7 +34,6 @@ Rule-based NL→SQL Engine ◄──── Feedback Loop
 │
 ▼
 Interactive UI (Streamlit)
-```yaml
 ```
 
 ## 🚀 Quick Start (Local)
