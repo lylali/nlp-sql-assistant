@@ -1,0 +1,18 @@
+
+[build-system]
+requires = ["setuptools>=67", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "legacy-assistant-demo"
+version = "1.0.0"
+description = "Dissertation demo: NL→SQL over synthetic legacy-style DB (demo-only)"
+authors = [{name="Your Name"}]
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = ["streamlit>=1.36.0","pandas>=2.2.0"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["legacy_assistant*"]
+exclude = ["apps*", "tests*"]
