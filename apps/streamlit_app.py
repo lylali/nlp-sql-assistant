@@ -1,3 +1,4 @@
+import re
 import streamlit as st, pandas as pd
 from legacy_assistant.config import AppConfig
 from legacy_assistant.db import create_demo_connection, run_sql, schema_introspect
@@ -15,6 +16,16 @@ def get_conn():
 conn=get_conn()
 schema=schema_introspect(conn)
 
+def implied_limit_from_question(q: str) -> int | None:
+    ql = q.lower()
+    m = re.search(r"\btop\s+(\d+)\b", ql)
+    if m: return int(m.group(1))
+    m = re.search(r"\bfirst\s+(\d+)\b", ql)
+    if m: return int(m.group(1))
+    m = re.search(r"\blimit\s+(\d+)\b", ql)
+    if m: return int(m.group(1))
+    return None
+
 with st.sidebar:
     st.header("Schema (demo)")
     for t, cols in schema.items():
@@ -29,6 +40,10 @@ if st.button("Generate SQL"):
     if added:
         st.toast(f"Learned {added} new template(s) from feedback.", icon="✅")
     st.session_state["cands"] = generate_candidates(q, conn=conn)
+    # set default row-limit based on the question, if implied
+    imp = implied_limit_from_question(q)
+    if imp:
+        st.session_state["row_limit_default"] = int(imp)
 
 cands=st.session_state.get("cands")
 left,right=st.columns([1.2,1.8])
@@ -44,18 +59,27 @@ with left:
 
 with right:
     st.subheader("Result")
-    row_limit=st.number_input("Row limit (safety)", min_value=10, max_value=5000, value=AppConfig().row_limit_default, step=10)
+    default_limit = int(st.session_state.get("row_limit_default", AppConfig().row_limit_default))
+    row_limit = st.number_input(
+    "Row limit (applied only if SQL has no LIMIT)",
+    min_value=10, max_value=50000, value=default_limit, step=10
+)
+
     if st.button("Run query"):
-        sql=st.session_state.get("sql_to_run")
+        sql = st.session_state.get("sql_to_run")
         if not sql:
             st.warning("Generate and select a candidate first.")
         else:
-            cols,rows=run_sql(conn, sql, row_limit=int(row_limit))
+            has_limit = " limit " in sql.lower()
+            cols, rows = run_sql(conn, sql, row_limit=None if has_limit else int(row_limit))
             if cols and "error" in cols:
                 st.error(rows[0][0]); st.code(rows[0][1], language="sql")
             elif cols:
-                df=pd.DataFrame(rows, columns=cols); st.dataframe(df, use_container_width=True)
-                if len(df.columns)>=2: st.bar_chart(df.set_index(df.columns[0])[df.columns[1]])
+                df = pd.DataFrame(rows, columns=cols)
+                st.dataframe(df, use_container_width=True)
+                if len(df.columns) >= 2:
+                    st.bar_chart(df.set_index(df.columns[0])[df.columns[1]])
+
 
     st.markdown("---"); st.subheader("Feedback")
     correct=st.checkbox("Mark as correct"); corrected_sql=st.text_area("Corrected SQL (optional)", height=100); note=st.text_input("Note (optional)")

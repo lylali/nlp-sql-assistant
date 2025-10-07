@@ -84,10 +84,9 @@ def _pick_distinct_column(learned: dict, table: str, col_like_phrase: str) -> st
 # Utility
 # ---------------------------
 def _ensure_limit(sql: str, n: int = 200) -> str:
-    s = sql.strip().rstrip(";")
-    if s.lower().startswith("select") and " limit " not in s.lower():
-        s += f"\nLIMIT {n}"
-    return s
+    # No longer enforce LIMIT here. Let UI/CLI decide.
+    return sql.strip().rstrip(";")
+
 
 def _dedupe_keep_best(cands: List[Candidate]) -> List[Candidate]:
     """Deduplicate by exact SQL; keep highest score."""

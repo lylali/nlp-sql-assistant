@@ -31,7 +31,9 @@ def main(argv=None):
 
     idx=max(1,min(args.apply,len(cands)))-1
     sql=cands[idx].sql
-    cols, rows = run_sql(conn, sql, row_limit=args.row_limit or cfg.row_limit_default)
+    has_limit = " limit " in sql.lower()
+    cols, rows = run_sql(conn, sql, row_limit=None if has_limit else (args.row_limit or cfg.row_limit_default))
+
     if not cols: print("No result."); return 0
     if "error" in cols:
         print("ERROR:", rows[0][0]); print("SQL:", rows[0][1])

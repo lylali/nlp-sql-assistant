@@ -1,9 +1,9 @@
 
 import sqlite3, random, datetime as dt
-def create_demo_connection(policies:int=2000, claims:int=5000, seed:int=7):
+def create_demo_connection(policies:int=2000, claims:int=5000, seed:int=7, *args, **kwargs):
     r = random.Random(seed)
-    # Always enable cross-thread use for Streamlit
-    conn = sqlite3.connect(":memory:", check_same_thread=True if kwargs.get("check_same_thread") is True else False)
+    check = bool(kwargs.get("check_same_thread", False))
+    conn = sqlite3.connect(":memory:", check_same_thread=check)
     cur = conn.cursor()
     cur.executescript("""    PRAGMA foreign_keys=ON;
     CREATE TABLE organizations(org_id INTEGER PRIMARY KEY, org_code TEXT UNIQUE, org_name TEXT, city TEXT, country_code TEXT);
@@ -41,19 +41,28 @@ def create_demo_connection(policies:int=2000, claims:int=5000, seed:int=7):
     cur.executemany("INSERT INTO users VALUES (?,?,?)", [(1,"admin","ADMIN"), (2,"dev1","DEV"), (3,"analyst","ANALYST")])
     conn.commit(); return conn
 
-def run_sql(conn, sql:str, row_limit:int=500):
+def run_sql(conn, sql: str, row_limit: int | None = None):
+    """
+    Execute SQL. If 'row_limit' is provided and the SQL has no LIMIT, append it.
+    Otherwise run SQL as-is (no automatic LIMIT).
+    """
     s = sql.strip().rstrip(";")
-    if s.lower().startswith("select") and " limit " not in s.lower():
-        s = f"{s}\nLIMIT {int(row_limit)}"
+    if row_limit is not None:
+        low = s.lower()
+        if low.startswith("select") and " limit " not in low:
+            s = f"{s}\nLIMIT {int(row_limit)}"
     cur = conn.cursor()
     try:
         cur.execute(s)
         if cur.description is None:
-            conn.commit(); return [], []
-        cols = [d[0] for d in cur.description]; rows = cur.fetchall()
+            conn.commit()
+            return [], []
+        cols = [d[0] for d in cur.description]
+        rows = cur.fetchall()
         return cols, rows
     except Exception as e:
-        return ["error","sql"], [(str(e), s)]
+        return ["error", "sql"], [(str(e), s)]
+
 
 def schema_introspect(conn):
     cur = conn.cursor()
