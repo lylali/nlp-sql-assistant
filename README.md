@@ -4,7 +4,6 @@ An interactive **Natural Language → SQL** system designed to help developers a
 
 This project was developed as part of a postgraduate dissertation, demonstrating how **AI-assisted query generation**, **schema learning**, and **user feedback loops** can enhance data accessibility in long-lived enterprise databases.
 
----
 
 ## 🎯 Project Overview
 
@@ -22,7 +21,7 @@ The Legacy Database Assistant provides:
   - See generated SQL.
   - Inspect results, correct mistakes, and give feedback.
 
----
+
 
 ## 🏗️ System Architecture
 Synthetic DB (SQLite)
