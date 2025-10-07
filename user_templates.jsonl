@@ -1,3 +1,3 @@
-{"q": "how many currencies in policies table?", "sql": "SELECT COUNT(DISTINCT currency) AS distinct_currency_count FROM policies", "count": 19}
-{"q": "unique status in claims", "sql": "SELECT DISTINCT status FROM claims ORDER BY status LIMIT 200", "count": 19}
-{"q": "how many cities in oragnizations?", "sql": "SELECT COUNT(DISTINCT city) AS distinct_org_id_count FROM organizations", "count": 10}
+{"q": "how many currencies in policies table?", "sql": "SELECT COUNT(DISTINCT currency) AS distinct_currency_count FROM policies", "count": 23}
+{"q": "unique status in claims", "sql": "SELECT DISTINCT status FROM claims ORDER BY status LIMIT 200", "count": 23}
+{"q": "how many cities in oragnizations?", "sql": "SELECT COUNT(DISTINCT city) AS distinct_org_id_count FROM organizations", "count": 12}
