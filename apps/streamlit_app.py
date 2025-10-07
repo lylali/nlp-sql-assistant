@@ -12,7 +12,7 @@ def get_conn():
     cfg=AppConfig()
     # IMPORTANT: make SQLite cross-thread safe for Streamlit
     import sqlite3
-    conn = create_demo_connection(cfg.demo_rows_policies, cfg.demo_rows_claims)
+    conn = create_demo_connection(":memory:", check_same_thread=False)
     return conn
 
 conn=get_conn()
