@@ -35,8 +35,8 @@ def score_table_column(learned: Dict[str,Any], q_tokens: List[str]) -> Tuple[Opt
             tok_syn = set(synonyms_for(tok))
             for s in tsurfs | tok_syn:
                 d = edit_distance(tok, s, 2)
-                if d == 0: t_score += 0.8
-                elif d == 1: t_score += 0.4
+                if d == 0: t_score += 0.5
+                elif d == 1: t_score += 0.25
 
         # check columns
         for c in tinfo.get("columns", []):

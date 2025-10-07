@@ -7,7 +7,8 @@ TOKEN = re.compile(r"[a-z0-9_]+")
 STOP = {
     "the","a","an","in","at","by","for","of","to","on","with","show","list","give","me",
     "how","many","what","which","where","when","is","are","do","does","all","any","and",
-    "rows","records","entries"
+    "rows","records","entries",
+    "unique","distinct","top","by","from","table","column"
 }
 
 # Small curated synonym map (extend freely)
