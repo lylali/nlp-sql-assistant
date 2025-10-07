@@ -3,6 +3,7 @@ from legacy_assistant.config import AppConfig
 from legacy_assistant.db import create_demo_connection, run_sql, schema_introspect
 from legacy_assistant.nl2sql import generate_candidates
 from legacy_assistant.feedback import record_feedback
+from legacy_assistant.feedback_learn import ingest_feedback_to_corpus
 
 st.set_page_config(page_title="Legacy Assistant (Demo)", layout="wide")
 
@@ -26,7 +27,11 @@ st.title("Legacy Database Assistant — Demo Only (SQLite)")
 q=st.text_input("Question", value="How many policies are active right now?")
 
 if st.button("Generate SQL"):
-    st.session_state["cands"]=generate_candidates(q, conn=conn)
+    # (Re)learn any new feedback into user corpus before generating
+    added = ingest_feedback_to_corpus()
+    if added:
+        st.toast(f"Learned {added} new template(s) from feedback.", icon="✅")
+    st.session_state["cands"] = generate_candidates(q, conn=conn)
 
 cands=st.session_state.get("cands")
 left,right=st.columns([1.2,1.8])

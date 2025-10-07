@@ -6,9 +6,12 @@ legacy_assistant/db.py
 legacy_assistant/dynamic_templates.py
 legacy_assistant/evaluate.py
 legacy_assistant/feedback.py
+legacy_assistant/feedback_learn.py
 legacy_assistant/learner.py
 legacy_assistant/lex.py
 legacy_assistant/nl2sql.py
+legacy_assistant/nlp.py
+legacy_assistant/predictor.py
 legacy_assistant/retriever.py
 legacy_assistant/templates.py
 legacy_assistant/version.py

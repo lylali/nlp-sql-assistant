@@ -1,4 +1,3 @@
-d
 TEMPLATES = [
     {"q":"how many policies are active","sql":"SELECT COUNT(*) AS active_policies FROM policies WHERE status='ACTIVE'"},
     {"q":"list top {k} organizations by total credit limit","sql":"SELECT o.org_name, SUM(p.credit_limit) AS total_limit FROM organizations o JOIN policies p ON p.org_id=o.org_id GROUP BY o.org_name ORDER BY total_limit DESC LIMIT {k}"},

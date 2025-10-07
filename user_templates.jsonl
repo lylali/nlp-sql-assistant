@@ -1,0 +1,2 @@
+{"q": "how many currencies in policies table?", "sql": "SELECT COUNT(DISTINCT currency) AS distinct_currency_count FROM policies"}
+{"q": "how many cities in oragnizations?", "sql": "SELECT COUNT(DISTINCT city) AS distinct_org_id_count FROM organizations"}
