@@ -31,7 +31,7 @@ with st.sidebar:
     for t, cols in schema.items():
         with st.expander(t): st.write(", ".join(cols))
 
-st.title("Legacy Database Assistant — Demo Only (SQLite)")
+st.title("SQL Assistant")
 q=st.text_input("Question", value="How many policies are active right now?")
 
 if st.button("Generate SQL"):
