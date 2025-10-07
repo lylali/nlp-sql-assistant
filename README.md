@@ -97,6 +97,6 @@ legacy-database-assistant/
 └── README.md
 ```
 
-##📄 License
+## 📄 License
 This project is distributed under the MIT License.
 Feel free to fork, reuse, or extend with attribution.
