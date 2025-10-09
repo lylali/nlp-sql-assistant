@@ -3,59 +3,39 @@ from __future__ import annotations
 import sqlite3
 from typing import Dict, Any, List, Tuple, Optional
 from .nlp import keywords, numbers_and_years, synonyms_for, edit_distance
+from .pmi import pmi_score as _pmi_score
 
-def build_value_index(learned: Dict[str,Any]) -> Dict[str, List[Tuple[str,str]]]:
+def score_table_column(learned: Dict[str,Any], q_tokens: List[str], pmi: Dict[str,float] | None = None) -> Tuple[Optional[str], Optional[str], float]:
     """
-    Reverse index: value (lower) -> [(table, column), ...]
-    """
-    idx: Dict[str, List[Tuple[str,str]]] = {}
-    for t, tinfo in learned.get("tables", {}).items():
-        for c, vals in tinfo.get("samples", {}).items():
-            for v in vals:
-                if isinstance(v, str):
-                    key = v.strip().lower()
-                    if not key: continue
-                    idx.setdefault(key, []).append((t, c))
-    return idx
-
-def score_table_column(learned: Dict[str,Any], q_tokens: List[str]) -> Tuple[Optional[str], Optional[str], float]:
-    """
-    Predict the most likely (table, column) given tokens.
-    Scoring signals:
-      - exact token match vs column/table surfaces (+)
-      - synonym match (+)
-      - small edit distance (+)
+    Predict (table, column) with fuzzy matching + optional PMI boost.
     """
     best = (None, None, 0.0)
     for t, tinfo in learned.get("tables", {}).items():
-        # table surfaces
         tsurfs = set(tinfo.get("surfaces", [])) | {t}
-        t_score = 0.0
+        base_t = 0.0
         for tok in q_tokens:
             tok_syn = set(synonyms_for(tok))
             for s in tsurfs | tok_syn:
                 d = edit_distance(tok, s, 2)
-                if d == 0: t_score += 0.5
-                elif d == 1: t_score += 0.25
-
-        # check columns
+                if d == 0: base_t += 0.5
+                elif d == 1: base_t += 0.25
         for c in tinfo.get("columns", []):
+            c_score = base_t
             csurfs = set([c.replace("_"," "), c])
-            c_score = t_score
             for tok in q_tokens:
                 tok_syn = set(synonyms_for(tok))
                 for s in csurfs | tok_syn:
                     d = edit_distance(tok, s, 2)
-                    if d == 0: c_score += 0.6
-                    elif d == 1: c_score += 0.3
+                    if d == 0: c_score += 1.0
+                    elif d == 1: c_score += 0.5
+                if pmi:
+                    c_score += 0.2 * _pmi_score(pmi, tok, t, c)  # PMI bump (small but discriminative)
             if c_score > best[2]:
                 best = (t, c, c_score)
-
-        # also consider table-only predictions
-        if t_score > best[2]:
-            best = (t, None, t_score)
-
+        if base_t > best[2]:
+            best = (t, None, base_t)
     return best
+
 
 def predict_filters(learned: Dict[str,Any], q: str) -> List[Tuple[str,str,str]]:
     """

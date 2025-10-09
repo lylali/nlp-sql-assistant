@@ -3,3 +3,4 @@
 {"ts": 1759865545, "question": "How many cities in oragnizations?", "generated_sql": "SELECT COUNT(DISTINCT org_id) AS distinct_org_id_count FROM organizations", "correct": true, "corrected_sql": "SELECT COUNT(DISTINCT city) AS distinct_org_id_count FROM organizations", "note": null}
 {"ts": 1759865677, "question": "unique status in claims", "generated_sql": "SELECT DISTINCT status FROM claims ORDER BY status LIMIT 200", "correct": true, "corrected_sql": null, "note": null}
 {"ts": 1759866444, "question": "unique status in claims", "generated_sql": "SELECT DISTINCT status FROM claims ORDER BY status LIMIT 200", "correct": true, "corrected_sql": null, "note": null}
+{"ts": 1760018206, "question": "How many status in claims?", "generated_sql": "SELECT COUNT(DISTINCT status) AS distinct_status_count FROM claims", "correct": true, "corrected_sql": null, "note": null}
