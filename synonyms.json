@@ -1,0 +1,30 @@
+{
+  "currencies": {
+    "maps_to": {},
+    "count": 2
+  },
+  "policies": {
+    "maps_to": {},
+    "count": 2
+  },
+  "table": {
+    "maps_to": {},
+    "count": 2
+  },
+  "cities": {
+    "maps_to": {},
+    "count": 1
+  },
+  "oragnizations": {
+    "maps_to": {},
+    "count": 1
+  },
+  "status": {
+    "maps_to": {},
+    "count": 3
+  },
+  "claims": {
+    "maps_to": {},
+    "count": 3
+  }
+}

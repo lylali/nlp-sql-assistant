@@ -15,7 +15,7 @@ from .predictor import score_table_column, predict_filters, predict_numbers
 from .paraphrase import paraphrase_questions
 from .pmi import build_pmi
 from .joins import two_table_candidates, synthesize_join_templates
-
+from .feedback_learn import load_user_corpus, load_patterns
 
 # ---------------------------
 # Data structure
@@ -108,6 +108,16 @@ def generate_candidates(question: str, conn=None) -> List[Candidate]:
     learned = learn_schema(conn) if conn is not None else {"tables": {}, "columns": {}}
     dynamic_corpus: List[Dict[str, str]] = generate_dynamic_corpus(learned) if learned.get("tables") else []
     user_corpus: List[Dict[str, str]] = load_user_corpus()
+    induced_patterns = load_patterns()
+
+    # Include patterns by materializing a few concrete variants (if they contain slots)
+    pat_corpus = []
+    for p in induced_patterns[:50]:
+        q = p.get("q_pat",""); s = p.get("sql_pat","")
+        if "{K}" in q or "{K}" in s:
+            pat_corpus.append({"q": q.replace("{K}","10"), "sql": s.replace("{K}","10")})
+        else:
+            pat_corpus.append({"q": q, "sql": s})
 
     # Build expanded corpus (paraphrases) for retriever + PMI
     base_corpus = [{"q": x["q"], "sql": " ".join(x["sql"].split())} for x in TEMPLATES] \

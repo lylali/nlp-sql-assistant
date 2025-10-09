@@ -2,6 +2,7 @@
 from __future__ import annotations
 from typing import List, Tuple, Dict, Any
 import re
+from .feedback_learn import load_synonyms as _load_syn
 
 # Lazy-load spaCy so CLI start is fast and Streamlit cache can keep the nlp object
 _SPACY = None
@@ -107,9 +108,17 @@ def entities(text: str) -> Dict[str, List[str]]:
             out[e.label_].append(e.text)
     return out
 
+_dyn_syn_cache = None
 def synonyms_for(tok: str) -> List[str]:
-    s = SYN.get(tok, [])
-    # simple plurality variants
+    global _dyn_syn_cache
+    if _dyn_syn_cache is None:
+        learned = _load_syn()  # {"token": {"maps_to": {...}, "count": N}}
+        # Promote tokens that repeatedly map to the same column as aliases of that column name
+        _dyn_syn_cache = {}
+        for k, v in (learned or {}).items():
+            if int(v.get("count",0)) >= 2:
+                _dyn_syn_cache[k] = list(v.get("maps_to", {}).keys())
+    s = SYN.get(tok, []) + _dyn_syn_cache.get(tok, [])
     if tok.endswith("s"): s.append(tok[:-1])
     else: s.append(tok + "s")
     return list({tok, *s})

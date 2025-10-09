@@ -5,6 +5,8 @@ from legacy_assistant.db import create_demo_connection, run_sql, schema_introspe
 from legacy_assistant.nl2sql import generate_candidates
 from legacy_assistant.feedback import record_feedback
 from legacy_assistant.feedback_learn import ingest_feedback_to_corpus
+from legacy_assistant.active import active_priority
+from legacy_assistant.feedback_learn import ingest_feedback_to_corpus
 
 st.set_page_config(page_title="SQL Assistant", layout="wide")
 
@@ -40,6 +42,18 @@ if st.button("Generate SQL"):
     if added:
         st.toast(f"Learned {added} new template(s) from feedback.", icon="✅")
     st.session_state["cands"] = generate_candidates(q, conn=conn)
+    priority = active_priority(q, st.session_state["cands"], [it["q"] for it in TEMPLATES])
+    if priority >= 0.6:
+        st.info(f"This query looks ambiguous (active-learn priority {priority:.2f}). "
+                "If you correct the SQL below, I'll learn from it and improve future answers.")
+    # When feedback submitted:
+    # - call ingest_feedback_to_corpus(); 
+    # - optionally display how many templates/patterns/synonyms updated.
+    changed, total = ingest_feedback_to_corpus()
+    if changed:
+        st.toast(f"Updated {changed} feedback entries. Corpus size: {total}.", icon="✅")
+
+
     # set default row-limit based on the question, if implied
     imp = implied_limit_from_question(q)
     if imp:
