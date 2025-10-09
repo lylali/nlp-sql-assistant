@@ -57,6 +57,12 @@ with left:
         choice=st.radio("Pick one to run", list(range(len(cands))), format_func=lambda i: opts[i])
         sql=cands[choice].sql; st.code(sql, language="sql"); st.session_state["sql_to_run"]=sql
 
+with st.expander("NLP debug (spaCy)", expanded=False):
+    from legacy_assistant.nlp import entities, keywords
+    st.write("Keywords:", keywords(q))
+    st.write("Entities:", entities(q))
+
+
 with right:
     st.subheader("Result")
     default_limit = int(st.session_state.get("row_limit_default", AppConfig().row_limit_default))

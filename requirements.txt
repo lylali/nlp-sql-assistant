@@ -14,7 +14,6 @@ jsonschema-specifications==2025.9.1
 -e git+https://github.com/lylali/nlp-sql-assistant.git@0ce8157d511011f2049bd51f9b75c4880ef1dc4d#egg=legacy_assistant_demo
 MarkupSafe==3.0.3
 narwhals==2.6.0
-numpy==2.3.3
 packaging==25.0
 pandas==2.3.3
 pillow==11.3.0
@@ -36,3 +35,10 @@ typing_extensions==4.15.0
 tzdata==2025.2
 urllib3==2.5.0
 watchdog==6.0.0
+spacy>=3.7
+https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl
+rapidfuzz>=3.6
+scikit-learn>=1.4
+wordfreq>=3.0
+dateparser>=1.2
+numpy>=1.24,<2.0

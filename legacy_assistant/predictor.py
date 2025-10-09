@@ -1,62 +1,94 @@
 # legacy_assistant/predictor.py
 from __future__ import annotations
-import sqlite3
 from typing import Dict, Any, List, Tuple, Optional
-from .nlp import keywords, numbers_and_years, synonyms_for, edit_distance
+from rapidfuzz import fuzz, process  # fast & accurate fuzzy match
+from .nlp import keywords, numbers_and_years, synonyms_for, entities
 from .pmi import pmi_score as _pmi_score
 
-def score_table_column(learned: Dict[str,Any], q_tokens: List[str], pmi: Dict[str,float] | None = None) -> Tuple[Optional[str], Optional[str], float]:
+def _score_token_surface(tok: str, surface: str) -> float:
+    """Similarity between a query token (lemma) and a surface form."""
+    # Use WRatio which blends multiple metrics, normalized to 0..1
+    return fuzz.WRatio(tok, surface) / 100.0
+
+def score_table_column(
+    learned: Dict[str,Any],
+    q_tokens: List[str],
+    pmi: Dict[str,float] | None = None
+) -> Tuple[Optional[str], Optional[str], float]:
     """
-    Predict (table, column) with fuzzy matching + optional PMI boost.
+    Predict (table, column) using:
+      - fuzzy similarity (rapidfuzz) on surfaces
+      - synonyms expansion
+      - PMI(token↔table.col) small boost when available
     """
     best = (None, None, 0.0)
     for t, tinfo in learned.get("tables", {}).items():
         tsurfs = set(tinfo.get("surfaces", [])) | {t}
-        base_t = 0.0
+        t_score = 0.0
+        # table-level score
         for tok in q_tokens:
-            tok_syn = set(synonyms_for(tok))
-            for s in tsurfs | tok_syn:
-                d = edit_distance(tok, s, 2)
-                if d == 0: base_t += 0.5
-                elif d == 1: base_t += 0.25
+            for s in tsurfs | set(synonyms_for(tok)):
+                t_score += 0.35 * _score_token_surface(tok, s)
+
+        # column-level score
         for c in tinfo.get("columns", []):
-            c_score = base_t
-            csurfs = set([c.replace("_"," "), c])
+            csurfs = {c, c.replace("_"," ")}
+            c_score = t_score
             for tok in q_tokens:
-                tok_syn = set(synonyms_for(tok))
-                for s in csurfs | tok_syn:
-                    d = edit_distance(tok, s, 2)
-                    if d == 0: c_score += 1.0
-                    elif d == 1: c_score += 0.5
+                for s in csurfs | set(synonyms_for(tok)):
+                    c_score += 0.8 * _score_token_surface(tok, s)
                 if pmi:
-                    c_score += 0.2 * _pmi_score(pmi, tok, t, c)  # PMI bump (small but discriminative)
+                    c_score += 0.2 * _pmi_score(pmi, tok, t, c)
             if c_score > best[2]:
                 best = (t, c, c_score)
-        if base_t > best[2]:
-            best = (t, None, base_t)
-    return best
 
+        # table-only fallback
+        if t_score > best[2]:
+            best = (t, None, t_score)
+    return best
 
 def predict_filters(learned: Dict[str,Any], q: str) -> List[Tuple[str,str,str]]:
     """
-    Guess equality filters from values mentioned in question using the value index.
-    Returns a list of (table, column, value_lc).
+    Guess equality filters from values mentioned in question.
+    - Use entity types to bias which columns might match.
+    - Still back by sampled value index from learn_schema() (cheap).
     """
-    idx = build_value_index(learned)
+    # Build value index once
+    idx: Dict[str, List[Tuple[str,str]]] = {}
+    for t, tinfo in learned.get("tables", {}).items():
+        for c, vals in tinfo.get("samples", {}).items():
+            for v in vals:
+                if isinstance(v, str):
+                    key = v.strip().lower()
+                    if key:
+                        idx.setdefault(key, []).append((t, c))
+
+    ent = entities(q)
     out: List[Tuple[str,str,str]] = []
+
+    # Prefer ORG/GPE strings first
+    for bucket in ("ORG","GPE","LOC"):
+        for val in ent.get(bucket, []):
+            v = val.strip().lower()
+            if v in idx:
+                t, c = idx[v][0]
+                out.append((t, c, v))
+
+    # Then fall back to any raw keyword that matches a sampled value
     for tok in keywords(q):
-        val = tok.strip().lower()
-        if val in idx:
-            # prefer the first mapping (could be several)
-            t, c = idx[val][0]
-            out.append((t, c, val))
-    return out
+        if tok in idx:
+            t, c = idx[tok][0]
+            out.append((t, c, tok))
+
+    # De-duplicate while preserving order
+    seen=set(); dedup=[]
+    for it in out:
+        if (it[0],it[1],it[2]) not in seen:
+            seen.add((it[0],it[1],it[2])); dedup.append(it)
+    return dedup
 
 def predict_numbers(q: str) -> Tuple[Optional[int], Optional[int]]:
     nums, years = numbers_and_years(q)
-    k = None
-    if nums:
-        # choose the first non-year as K (top-K, limit)
-        k = nums[0]
+    k = nums[0] if nums else None
     y = years[0] if years else None
     return k, y
