@@ -2,3 +2,4 @@
 {"q_pat": "how many cities in oragnizations?", "sql_pat": "SELECT COUNT(DISTINCT city) AS distinct_org_id_count FROM organizations"}
 {"q_pat": "unique status in claims", "sql_pat": "SELECT DISTINCT status FROM claims ORDER BY status LIMIT {K}"}
 {"q_pat": "how many status in claims?", "sql_pat": "SELECT COUNT(DISTINCT status) AS distinct_status_count FROM claims"}
+{"q_pat": "how many roles in users?", "sql_pat": "SELECT COUNT(DISTINCT role) AS distinct_role_count FROM users"}

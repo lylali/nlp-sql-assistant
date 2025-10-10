@@ -21,14 +21,23 @@ def score_table_column(
       - synonyms expansion
       - PMI(token↔table.col) small boost when available
     """
+    # Heuristic: if question tokens mention a table name directly, prefer that table
+    hard_hint = None
+    for t in learned.get("tables", {}):
+        if any(tok in (t, t.rstrip("s")) for tok in q_tokens):
+            hard_hint = t
+            break
+
     best = (None, None, 0.0)
     for t, tinfo in learned.get("tables", {}).items():
         tsurfs = set(tinfo.get("surfaces", [])) | {t}
         t_score = 0.0
         # table-level score
         for tok in q_tokens:
-            for s in tsurfs | set(synonyms_for(tok)):
+            for s in tsurfs:
                 t_score += 0.35 * _score_token_surface(tok, s)
+        if hard_hint and t == hard_hint:
+            t_score += 0.4    # strong bias toward explicitly mentioned table
 
         # column-level score
         for c in tinfo.get("columns", []):

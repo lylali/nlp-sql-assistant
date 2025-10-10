@@ -30,15 +30,19 @@ STOP = {
 SYN: Dict[str, List[str]] = {
     "policy": ["policies","contract"],
     "claim": ["claims","loss","case"],
-    "organization": ["org","company","customer","client","party"],
-    "user": ["users","account","member"],
     "role": ["roles","permission","group"],
+    "roles": ["role","permissions","groups"],
     "status": ["state","stage"],
     "amount": ["value","sum","total"],
-    "credit": ["limit","credit_limit"],
     "city": ["town","location"],
     "number": ["code","id","identifier"],
     "active": ["current","open","enabled"],
+    "organization": ["organizations","org","company","customer","client","party","policyholder"],
+    "organizations": ["organization","orgs","companies","clients","parties","policyholders"],
+    "user": ["users","account","accounts","member","members","user_account"],
+    "users": ["user","accounts","members","user_account"],
+    "credit limit": ["credit_limit","limit","coverage","exposure"],
+    "policy": ["policies","contract"],    
 }
 
 TOKEN = re.compile(r"[a-z0-9_]+")

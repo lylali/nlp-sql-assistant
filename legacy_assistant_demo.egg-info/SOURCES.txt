@@ -1,6 +1,7 @@
 README.md
 pyproject.toml
 legacy_assistant/__init__.py
+legacy_assistant/active.py
 legacy_assistant/config.py
 legacy_assistant/db.py
 legacy_assistant/dynamic_templates.py
