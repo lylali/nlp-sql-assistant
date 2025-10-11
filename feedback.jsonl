@@ -1,1 +1,0 @@
-{"ts": 1760107982, "question": "How many currencies in policies table?", "generated_sql": "SELECT COUNT(DISTINCT currency) AS distinct_currency_count FROM policies", "correct": true, "corrected_sql": null, "note": null}
