@@ -160,14 +160,18 @@ def generate_candidates(question: str, conn=None) -> List[Candidate]:
     if m and learned.get("tables"):
         col_like, tab_like = m.group(1), m.group(2)
         t, c, _ = score_table_column(learned, keywords(col_like) + keywords(tab_like), pmi=pmi)
-        if t and c:
+        if t:
+            # If scorer picked an ID-like column (e.g., user_id), choose a better categorical column
+            if (not c) or c.lower().endswith("_id") or re.search(r"(?:^|_)(id|number)$", c, re.I):
+                c = _pick_distinct_column(learned, t, col_like)
             cands.append(
                 Candidate(
                     sql=f"SELECT COUNT(DISTINCT {c}) AS distinct_{c}_count FROM {t}",
                     score=0.95,
-                    rationale="Rule: count distinct column in table",
+                    rationale="Rule: count distinct column in table (ID-avoidance fallback)",
                 )
             )
+
 
     # HOW MANY ROWS IN <table>    -> COUNT(*)
     m = RE_COUNT_ROWS.search(q)

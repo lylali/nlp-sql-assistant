@@ -24,3 +24,4 @@ legacy_assistant_demo.egg-info/SOURCES.txt
 legacy_assistant_demo.egg-info/dependency_links.txt
 legacy_assistant_demo.egg-info/requires.txt
 legacy_assistant_demo.egg-info/top_level.txt
+tests/test_queries.py

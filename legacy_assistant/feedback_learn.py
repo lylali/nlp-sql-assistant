@@ -32,10 +32,12 @@ def _dump_jsonl_atomic(path: str, items: List[dict]) -> None:
 def _load_json(path: str) -> dict:
     if os.path.exists(path):
         try:
-            return json.loads(open(path,"r",encoding="utf-8").read())
-        except:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
             return {}
     return {}
+
 
 def _dump_json(path: str, obj: dict) -> None:
     tmp = path + ".tmp"
